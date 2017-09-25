@@ -3,7 +3,7 @@
 ### Authors 
 Karol Cichewicz, Jay Hirsh, University of Virginia, Charlottesville, VA
 
-### Short description:
+### Short description
 ShinyR-DAM is an application for analyzing Drosophila locomotor activity, sleep, and circadian periodicity recorded by the Drosophila Activity Monitor (DAM) system, developed and manufactured by TriKinetics (Waltham, MA). Our program operates in the cloud and can be accessed via this link: https://karolcichewicz.shinyapps.io/shinyr-dam/ , or deployed localy using RStudio. 
 
 ### Testing
