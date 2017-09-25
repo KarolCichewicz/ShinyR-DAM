@@ -1,6 +1,6 @@
 # ShinyR-DAM
 
-## Authors: 
+### Authors: 
 Karol Cichewicz, Jay Hirsh, University of Virginia, Charlottesville, VA
 
 Short description:
