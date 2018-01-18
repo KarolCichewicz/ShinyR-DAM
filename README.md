@@ -20,9 +20,11 @@ ShinyR-DAM source code is provided under the GPLv3 free software license.
 ### Current ShinyR-DAM version: 3.0
 
 ### R session info:
-R version 3.3.1 (2016-06-21)
+R version 3.4.3 (2017-11-30)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows >= 8 x64 (build 9200)
+
+Matrix products: default
 
 locale:
 [1] LC_COLLATE=English_United States.1252  LC_CTYPE=English_United States.1252   
@@ -33,18 +35,19 @@ attached base packages:
 [1] grid      stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] colourpicker_0.3  lubridate_1.6.0   Kmisc_0.5.0       data.table_1.10.4 gridExtra_2.2.1  
- [6] scales_0.4.1      gtools_3.5.0      zoo_1.7-13        dplyr_0.5.0       ggplot2_2.2.1    
-[11] plyr_1.8.4        shiny_1.0.3      
+ [1] bindrcpp_0.2        colourpicker_1.0    lubridate_1.7.1     Kmisc_0.5.0        
+ [5] data.table_1.10.4-3 gridExtra_2.3       scales_0.5.0        gtools_3.5.0       
+ [9] zoo_1.8-1           dplyr_0.7.4         ggplot2_2.2.1       plyr_1.8.4         
+[13] shiny_1.0.5        
 
 loaded via a namespace (and not attached):
- [1] Rcpp_0.12.11     bitops_1.0-6     tools_3.3.1      digest_0.6.10    jsonlite_1.1    
- [6] tibble_1.3.3     gtable_0.2.0     lattice_0.20-33  rlang_0.1.1      DBI_0.5-1       
-[11] stringr_1.1.0    knitr_1.15       htmlwidgets_0.8  R6_2.2.0         RJSONIO_1.3-0   
-[16] reshape2_1.4.2   magrittr_1.5     htmltools_0.3.5  rsconnect_0.8    assertthat_0.1  
-[21] mime_0.5         xtable_1.8-2     colorspace_1.3-0 httpuv_1.3.3     labeling_0.3    
-[26] stringi_1.1.2    miniUI_0.1.1     RCurl_1.95-4.8   lazyeval_0.2.0   munsell_0.4.3   
-[31] markdown_0.7.7  
+ [1] Rcpp_0.12.14     pillar_1.1.0     compiler_3.4.3   bindr_0.1        bitops_1.0-6    
+ [6] tools_3.4.3      digest_0.6.14    jsonlite_1.5     tibble_1.4.1     gtable_0.2.0    
+[11] lattice_0.20-35  pkgconfig_2.0.1  rlang_0.1.6      stringr_1.2.0    knitr_1.18      
+[16] htmlwidgets_0.9  glue_1.2.0       R6_2.2.2         RJSONIO_1.3-0    reshape2_1.4.3  
+[21] magrittr_1.5     htmltools_0.3.6  rsconnect_0.8.5  assertthat_0.2.0 mime_0.5        
+[26] xtable_1.8-2     colorspace_1.3-2 httpuv_1.3.5     labeling_0.3     miniUI_0.1.1    
+[31] stringi_1.1.6    RCurl_1.95-4.10  lazyeval_0.2.1   munsell_0.4.3    markdown_0.8   
 
 
 
