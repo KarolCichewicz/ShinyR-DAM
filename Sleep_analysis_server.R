@@ -1,6 +1,6 @@
 # Function calculating a sums in 5 min sliding windows, progressing in 1 min increments. 0 represent sleep. 
 roll_sleep <- reactive({
-  function(x){rollapply(select(s_9(), get(x)), width = 5, by = 1, FUN = sum, align = "left")}   
+  function(x){rollapply(select(s_9(), x), width = 5, by = 1, FUN = sum, align = "left")}   
 })
 
 # Applied the roll_speel function to the data         

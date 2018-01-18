@@ -20,7 +20,7 @@ output$Number_of_flies_per_cond <- renderUI({
 output$Colour_selection <- renderUI({
   numb_of_cond <- input$Number_of_conditions
   lapply(1:numb_of_cond, function(i) {
-    colourInput(paste0('Condition_colour', i), paste('Color of Condition', i), value = "grey")
+    colourInput(paste0('Condition_colour', i), paste('Color of Condition', i), value = "#BEBEBE")
   })
 })
 

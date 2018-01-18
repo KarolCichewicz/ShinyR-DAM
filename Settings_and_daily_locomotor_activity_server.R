@@ -70,7 +70,7 @@ date_and_light_cycle <- reactive({
 
 
 # data_freq - actually a number of minutes per day in the recorded data  
-data_freq <- reactive(1440/input$data_recording_frequency)
+data_freq <- reactive(1440/ as.numeric(input$data_recording_frequency))
 
 # List of monitor files in an order specified by the user. Order is important for proper condition assignment.         
 import.list  <- reactive({
@@ -346,6 +346,10 @@ all_channels <- reactive(colnames(s_8())[-c(1:4, length(colnames(s_8())), length
 
 # Ensuring the proper order of date and Dec_time columns. It's critical for the roll function to work properly.
 s_9 <- reactive({
+  
+  #s8 <<- s_8()
+  #ac <<- all_channels()
+  
   d <- s_8()
   d[with(d, order(date, Dec_time)),]
   d
@@ -355,7 +359,8 @@ s_9 <- reactive({
 roll <- reactive({function(x){
   library(dplyr)
   library(zoo)
-  rollapply(select(s_9(), get(x)), width = data_freq(), by = data_freq(), FUN = sum, align = "left")}
+
+  rollapply(select(s_9(), x), width = data_freq(), by = data_freq(), FUN = sum, align = "left")}
 })
 
 # Calculates daily activity per fly. Execution timewith can be decreased 2x by using paralell sapply.  Tested on 17 monitors over 11 days, 1 min recording freq.
@@ -375,6 +380,8 @@ activity_by_day_1 <- reactive(data.frame(date=date_and_light_cycle()$date, Light
 
 # Melts activity by day and adds condition, date, and Light_sycle columns
 melted_by_day <- reactive({
+  
+  
   d <- activity_by_day_1()
   p <- melt_(d, id.vars=c("date", "Light_cycle"))
   p$date <- as.Date(p$date)
@@ -416,6 +423,12 @@ all_flies_count <- reactive({
 
 # Object summarizing locomotor activity in LD and DD
 general_summary <- reactive({
+  
+  #sbfa <<- summary_by_fly_alive()
+  #mbda <<- melted_by_day_alive() 
+  #mbd <<- melted_by_day()
+  #abd_1 <<- activity_by_day_1()
+  
   
   withProgress(message = 'Calculating summary by Condition', min=0, max=0.6, value = 0.5, {
     incProgress(0.8, detail = paste("In progress"))
