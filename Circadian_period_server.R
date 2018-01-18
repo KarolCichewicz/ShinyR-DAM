@@ -168,7 +168,6 @@ Mean_period_by_condition_rhythmic <- reactive({
   
   df_period_alive_rhythmic <- filter(dfpa, channel %in% unique(ippar$channel))
   
-  
   DT<- data.table(df_period_alive_rhythmic)
   p<- DT[,list(
     Mean_Qp.act = as.numeric(mean(na.omit(Qp.act))), 
@@ -268,8 +267,6 @@ output$Mean_periodograms_split <- renderPlot({
   
   isolate({
     
-    
-    
     plot_x <- lapply(unique_conditions(), function(x) ggplot(filter(Mean_period_by_condition_rhythmic(), Condition==x), aes(x=Period, y=Mean_Qp.act, colour = Condition)) + 
                        geom_point()+
                        geom_line()+
@@ -311,6 +308,22 @@ output$per_profiles_split <- renderUI({
   )
 })
 
+df_period_alive_rhythmic <- reactive({
+
+# Shorten this even further  
+dfpa <-   df_period_alive()  
+ippar <- individual_period_peaks_alive_rhythmic()
+
+d <- filter(dfpa, channel %in% unique(ippar$channel))
+
+d$channel <- factor(d$channel, levels = unique(d$channel))
+d <- arrange(d, channel)
+
+d <- within(d, Condition_channel <- paste(Condition, channel, sep='_'))
+d
+
+})
+
 
 
 
@@ -324,15 +337,10 @@ output$individual_periodograms <- renderPlot({
   
   isolate({
     
-    dfpa <- df_period_alive()  
-    ippar <- individual_period_peaks_alive_rhythmic()
-    
-    df_period_alive_rhythmic <- filter(dfpa, channel %in% unique(ippar$channel))
-    
-    ggplot(df_period_alive_rhythmic, aes(x=Period, y=Qp.act, colour = channel)) + 
+    ggplot(df_period_alive_rhythmic(), aes(x=Period, y=Qp.act, colour = channel)) + 
       geom_point()+
       geom_line()+
-      geom_line(data= df_period_alive_rhythmic, aes(x=Period, y = Qp.sig), size=0.5, colour="black")+
+      geom_line(data= df_period_alive_rhythmic(), aes(x=Period, y = Qp.sig), size=0.5, colour="black")+
       theme_bw()+
       labs(x="Circadian Period [h]", y="Qp.act")+
       theme(plot.title = element_text(size = rel(2), hjust=0.5))+
@@ -356,8 +364,81 @@ output$individual_periodograms <- renderPlot({
 
 
 
+
+# Individual periodograms2    
+output$individual_periodograms2 <- renderPlot({
+  if (is.null(inFile()))
+    return(NULL)
+  if (input$refresh_3 == 0)
+    return()
+  
+  isolate({
+    
+    ind_periodogram <- function(x){
+      y <- filter(df_period_alive_rhythmic(), Condition_channel==x) # Filteres a condition
+      
+      ggplot(y, aes(x=Period, y=Qp.act, colour = channel)) + 
+        geom_point()+
+        geom_line()+
+        geom_line(data= y, aes(x=Period, y = Qp.sig), size=0.5, colour="black")+
+        theme_bw()+
+        labs(title= x, x="", y="Qp.act")+
+        theme(plot.title = element_text(size = rel(2), hjust=0.5))+
+        scale_x_continuous(breaks = seq(4, 56, 2)) +
+        geom_vline(xintercept = 24, linetype = 2 ) +
+        theme(axis.text.x=element_text( hjust=0.5, size=15, face="bold"))+
+        theme(axis.text.y=element_text( hjust=0.5, size=15, face="bold"))+
+        theme(axis.title = element_text(size=18))+
+        theme(legend.title = element_blank())+
+        scale_fill_manual(values=Plot_colors())+
+        theme(legend.position="none")+
+        theme(strip.text = element_text(size=25))
+    }
+    
+    list_of_chan <- unique(df_period_alive_rhythmic()$Condition_channel)
+    
+    p <- marrangeGrob(lapply(list_of_chan, function(x) FUN=ind_periodogram(x)), ncol=1, nrow = length(unique(df_period_alive_rhythmic()$Condition_channel)), 
+                      top ="",   bottom=textGrob("Circadian Period [h]", gp=gpar(fontsize=20)))
+    p
+    
+  })
+})
+
+
+output$ind_per2 <- renderUI({
+  
+  if (is.null(inFile()))
+    return(NULL)
+  if (input$refresh_3 == 0)
+    return()
+  
+  isolate(
+    plotOutput("individual_periodograms2", height = input$per_height * as.numeric(length(unique(df_period_alive_rhythmic()$Condition_channel))), 
+               width = input$per_width)
+    
+  )
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Box plot of individual Period peaks  
 output$ind_period_peaks <- renderPlot({
+  
+  
+  
   if (is.null(inFile()))
     return(NULL)
   geom_dotplot(binaxis = "y", stackdir = "center")
@@ -367,13 +448,13 @@ output$ind_period_peaks <- renderPlot({
   isolate({
     ind_periods<- ggplot(na.omit(individual_period_peaks_alive_rhythmic()), aes(x=Condition, y=Period, colour = Condition)) +
       geom_boxplot(alpha=0.7)+
-      geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 0.5, aes(fill=Condition))+
+      geom_dotplot(binaxis = "y", binwidth = 0.1, stackdir = "center", dotsize = 0.5, aes(fill=Condition))+
       labs(y="Circadian Period [h]", x="") +  #adds/removes axis lables
       theme(legend.title=element_blank())+ #removes legend title
       theme_bw()+
       theme(axis.text.x=element_text(angle=50, hjust=1, size=18, face="bold"))+
       theme(axis.text.y=element_text(hjust=1, size=16, face="bold"))+
-      theme(axis.title.y = element_text(color="black", size=18, face="bold"))+         #axis title
+      theme(axis.title.y = element_text(color="black", size=18))+         #axis title
       theme(legend.title = element_blank())+
       theme(legend.text = element_text(size=18))+
       labs(title= "Circadian period peaks")+
@@ -443,7 +524,7 @@ output$period_peaks <- renderTable({
 
 output$download_mean_period_by_condition_rhythmic <- downloadHandler(
   filename = function() {
-    paste("Mean_periodogram_data_by_condition-", Sys.Date(),  ".csv", sep="")
+    paste("Mean_periodograms_data", ".csv", sep="")
   },
   content = function(file) {
     write.csv(Mean_period_by_condition_rhythmic(), file)
@@ -451,9 +532,19 @@ output$download_mean_period_by_condition_rhythmic <- downloadHandler(
 )
 
 
+output$download_individual_periodograms_alive_rhythmic <- downloadHandler(
+  filename = function() {
+    paste("Individual_periodograms_rhythmic_alive", ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(df_period_alive_rhythmic(), file)
+  }
+)  
+
+
 output$download_individual_period_peaks_alive_rhythmic <- downloadHandler(
   filename = function() {
-    paste("Individual_fly_period_peaks-", Sys.Date(),  ".csv", sep="")
+    paste("Individual_fly_period_peaks", ".csv", sep="")
   },
   content = function(file) {
     write.csv(individual_period_peaks_alive_rhythmic(), file)

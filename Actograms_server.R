@@ -46,7 +46,7 @@ mean_actogram <- reactive({function(x){
         facet_grid(date ~ .)+
         labs(title= x, x= "", y = "Counts/recording frequency")+
         theme_bw()+
-        scale_x_continuous(breaks = c(0, 360,720, 1080, (1440-input$data_recording_frequency)), labels=c("0h", "6h", "12h", "18h", "24h")) +
+        scale_x_continuous(breaks = c(0, 360,720, 1080, (1440-input$data_recording_frequency)), labels=c("0 h", "6 h", "12 h", "18 h", "0 h")) +
         theme(axis.text=element_text(size=14))+
         theme(text = element_text(size=16))+
         theme(plot.title = element_text(size = rel(2), hjust=0.5))+
@@ -79,7 +79,7 @@ mean_actogram <- reactive({function(x){
         facet_grid(date2 ~ .)+
         labs(title= x, x= "", y = "Number of counts/recording frequency")+
         scale_x_continuous(breaks = c(1, 360,720, 1080, 1440, 1800, 2160, 2520, 2880), 
-                           labels=c("0h", "6h", "12h", "18h", "24h", "6h", "12h", "18h", "24h"))+
+                           labels=c("0 h", "6 h", "12 h", "18 h", "0 h", "6 h", "12 h", "18 h", "0 h"))+
         coord_cartesian(xlim=c(1,2880))+
         theme(plot.title = element_text(size = rel(2), hjust=0.5))+
         theme(axis.text=element_text(size=14))+
@@ -143,7 +143,7 @@ median_actogram <- reactive({function(x){
         facet_grid(date ~ .)+
         labs(title= x, x= "", y = "Counts/acquisition frequency")+
         theme_bw()+
-        scale_x_continuous(breaks = c(0, 360,720, 1080, (1440-input$data_recording_frequency)), labels=c("0h", "6h", "12h", "18h", "24h")) +
+        scale_x_continuous(breaks = c(0, 360,720, 1080, (1440-input$data_recording_frequency)), labels=c("0 h", "6 h", "12 h", "18 h", "0 h")) +
         theme(axis.text=element_text(size=14))+
         theme(text = element_text(size=16))+
         theme(plot.title = element_text(size = rel(2), hjust=0.5))+
@@ -176,7 +176,7 @@ median_actogram <- reactive({function(x){
         facet_grid(date2 ~ .)+
         labs(title= x, x= "", y = "Number of counts/recording frequency")+
         scale_x_continuous(breaks = c(1, 360,720, 1080, 1440, 1800, 2160, 2520, 2880), 
-                           labels=c("0h", "6h", "12h", "18h", "24h", "6h", "12h", "18h", "24h"))+
+                           labels=c("0 h", "6 h", "12 h", "18 h", "0 h", "6 h", "12 h", "18 h", "0 h"))+
         coord_cartesian(xlim=c(1,2880))+
         theme(plot.title = element_text(size = rel(2), hjust=0.5))+
         theme(axis.text=element_text(size=14))+
@@ -229,12 +229,15 @@ output$Median_act <- renderUI({
 
 
 
+
+
 ### Individual actograms - all 3 components
 
 # Function defining individual actograms
 ind_act <- reactive({function(x){
   if (input$refresh == 0)
     return()
+  
   
   
   
@@ -253,7 +256,7 @@ ind_act <- reactive({function(x){
         facet_grid(date ~ .)+
         labs(title= x, x= "", y = "Counts/recording frequency")+
         theme_bw()+
-        scale_x_continuous(breaks = c(0, 360,720, 1080, (1440-input$data_recording_frequency)), labels=c("0h", "6h", "12h", "18h", "24h")) +
+        scale_x_continuous(breaks = c(0, 360,720, 1080, (1440-input$data_recording_frequency)), labels=c("0 h", "6 h", "12 h", "18 h", "0 h")) +
         theme(axis.text=element_text(size=14))+
         theme(text = element_text(size=16))+
         theme(plot.title = element_text(size = rel(2), hjust=0.5))+
@@ -288,7 +291,7 @@ ind_act <- reactive({function(x){
         facet_grid(date2 ~ .)+
         labs(title= x, x= "", y = "Number of counts/recording frequency")+
         scale_x_continuous(breaks = c(1, 360,720, 1080, 1440, 1800, 2160, 2520, 2880), 
-                           labels=c("0h", "6h", "12h", "18h", "24h", "6h", "12h", "18h", "24h"))+
+                           labels=c("0 h", "6 h", "12 h", "18 h", "0 h", "6 h", "12 h", "18 h", "0 h"))+
         coord_cartesian(xlim=c(1,2880))+
         theme(plot.title = element_text(size = rel(2), hjust=0.5))+
         theme(axis.text=element_text(size=14))+
@@ -351,4 +354,42 @@ output$Individual_act <- renderUI({
     
   )
   })
-})  
+})
+
+
+output$download_mean_and_median_actogram_data <- downloadHandler(
+  filename = function() {
+    paste("Mean_and_median_actogram_data", ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(mean_and_median(), file)
+  }
+)
+
+
+output$download_individual_actogram_data <- downloadHandler(
+  filename = function() {
+    paste("Individual_actogram_data", ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(melted(), file)
+  }
+)
+
+output$download_list_of_alive_flies <- downloadHandler(
+  filename = function() {
+    paste("List_of_alive_flies", ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(alive(), file)
+  }
+)
+
+output$download_list_of_dead_flies <- downloadHandler(
+  filename = function() {
+    paste("List_of_dead_flies", ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(dead_flies(), file)
+  }
+)

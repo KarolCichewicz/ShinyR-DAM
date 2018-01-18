@@ -21,8 +21,10 @@ range_of_days <- reactive({
 # A list of all inputs - used for accessing certain variables     
 All_inputs <- reactive(reactiveValuesToList(input))
 
+
 # Data frame with conditions and number of flies in each condition    
 Conditions_and_numbers <- reactive(
+    
   data.frame(
     Concition_names=unlist(lapply(1:input$Number_of_conditions, function(i){All_inputs()[[paste0("Condition",i)]]})),
     Condition_counts=unlist(lapply(1:input$Number_of_conditions, function(i){All_inputs()[[paste0("Number_of_flies_in_cond",i)]]})))
@@ -127,6 +129,7 @@ monitor_data_status_1 <- reactive({
 
 # Creates a dataframe with date information and status codes         
 data_43 <- reactive({
+  
   data.frame(day=data_x()$V2, month=data_x()$V3, year=data_x()$V4, time=data_x()$V5, monitor_data_status(), renamed_data_44())
 })
 
@@ -180,30 +183,32 @@ Data_recording_status_melted <- reactive({
 Status_codes <- reactive({
   
   p <- Data_recording_status_melted()
+  m <- monitor_data_status_1()
   
-  if(unique(p$value == 1)){ 
+### Yes, I know it's a litttle messy, but it works!  
+    
+  if(all(p$value == 1)){ 
     "Data correct. All DAM data status codes are 1"
   }else {
     print("Error: Data incorrect. Data status codes other than 1 were detected in one or more Monitor files")
-    print("Make sure you correctly selected the dates of data to analyze,")
-    print("excluding day 0 when you connect monitors to the system,")
+    print("Make sure you correctly selected the dates to analyze,")
+    print("excluding day 0 when you connected your monitors to the system,")
     print("and the day you transfered your monitor files from the computer recording the data.")
     print("This program can only analyze FULL DAYS of locomotor activity")
     print("The following status codes were detected")
-    print(unique(filter(select(p, value), value != 1)))
-    print("Errors were found in this number of rows (minutes of the recorded data if acquisition frequency is set to 1):")  
+    print(unique(filter(select(p, value), value != 1)$value))
+    print("Errors were found in this number of rows (minutes of the recorded data if the acquisition frequency is 1 min):")  
     print(nrow(filter(p, value != 1)))
     print("Errors were found in the following monitors:")  
-    print(unique(select(filter(p, value != 1), variable)))
-    print("The first few rows containing errors:")
-    print(head(filter(p, value != 1)))
-    print("If errors occur in low number of records just ignore them.") 
-    print("If errors do not result in a missing data records they will not substantially affect the analysis.")
-    print("Errors causing missing data records will also cause the accompanying error:")
-    print("Error: The number of minutes in the recorded data does not match the number of days.")
-    print("In that case, if the damage is not substantial to the interpretation of the experiment, you may consider to manually fix Monitor files filling the gaps.")
-    print("Please also check the condition of your DAM hardware considering the nature of error codes")
-    print("More on the DAM system error codes can be found here: http://www.trikinetics.com/Downloads/DAMSystem%20User's%20Guide%203.0.pdf")
+    print(unique(filter(melt_(m), value != 1))$variable)
+    print("The first ten rows of data with errors:")
+    print(head(filter(p, value != 1))[,c(1,2,4)], 10)
+    print("More about the DAM system error codes can be found at: http://www.trikinetics.com/Downloads/DAMSystem%20User's%20Guide%203.0.pdf")
+    print("Please check the condition of your DAM hardware, considering the nature of error codes")
+    print("If errors occur in low number of records, you may consider ignoring them.") 
+    print("If errors are not associated with missing data records, they will not substantially affect the analysis.")
+    print("Missing data records will trigger the accompanying error printed in the Data and settings validation:")
+    print("Error: The number of minutes in the recorded data does not match the number of days specified in settings.")
     
   }
 })
@@ -215,12 +220,12 @@ Monitors_vs_conditions_check <- reactive({
   fil <- input$file1
   
   if(length(cond) == length(fil$name)*32){ 
-    ("Input data correct. Total number of flies in Conditions matches total number of channels in Monitors")
+    ("Input data correct. Total number of flies in Conditions matches the total number of channels in the uploaded Monitors files")
   }else {
-    print("Error: Input data incorrect; Total number of flies in Conditions doesn't match the total number of channels in Monitors specified")
+    print("Error: Input data or settings are incorrect; Total number of flies in Conditions doesn't match the total number of channels in the uploaded Monitor files")
     print("Number of flies specified in conditions:")
     print(length(conditions()))
-    print("Number of channels specified in Monitor files:")
+    print("Number of channels in the uploaded Monitor files:")
     print(length(fil$name)*32)
   }
   
@@ -234,7 +239,7 @@ LD_DD_overlap_check <- reactive({
     print("Input dates correct. LD and DD days do not overlap")
   }else {
     print("Error: Input dates incorrect; LD and DD days overlap")
-    print("LD and DD days cannot overlap")
+    print("LD and DD days cannot overlap. Please correct your settings.")
     print("LD days:")
     print(LD())
     print("DD days")
@@ -245,17 +250,26 @@ LD_DD_overlap_check <- reactive({
 # Checks for missing data records or incorrectly set recording frequency.   
 Data_range_correctness <- reactive({
   
-  if(nrow(s_1()) == data_freq()*number_of_days()){ 
-    print("Input dates correct. The number of minutes in the recorded data matches the number of days.")
+  
+  if(nrow(na.omit(s_1())) == data_freq()*number_of_days()){ 
+    print("Input data correct. The number of minutes in the recorded data matches the number of days specified in settings.")
   }else {
-    print("Error: The number of minutes in the recorded data does not match the number of days.")
-    print("One of the range of dates likely includes an incomplete day of recorded data, or data acquisition frequency is set to an incorrect value.") 
-    print("Please adjust your settings")
+    print("Error: The number of minutes in the recorded data does not match the number of days specified in settings.")
+    print("Your data includes an incomplete day of recorded data, or data acquisition frequency is set to an incorrect value.") 
+    print("Please adjust your settings or check your monitor files for missing records")
     nrow_each <- function(x)
-    {nrow(filter(s_1(), date==x))}
+    {nrow(filter(na.omit(s_1()), date==x))}
     print(data.frame(Dates_of_experiment=unique(s_1()$date), weekday=weekdays(unique(s_1()$date)), Number_of_data_readings=sapply(unique(s_1()$date), FUN=nrow_each)))
-    print("Each day should contain this number of readings:")
+    print("Based on the acquisition frequency setting, ShinyR-DAM expects the following number of data readings per day:")
     print(data_freq())
+    print("If the damage is not substantial to the interpretation of the experiment,")
+    print("you may consider manually filling the missing records in monitor files with 0s.")
+    print("The following data frame showns the number of data records in each channel.")
+    print("It should give you a clue what monitor files are affected")
+    
+    d <- melt(colSums(!is.na(s_1())))
+    
+    print(d)
   }
 })
 
@@ -286,9 +300,9 @@ unique_conditions <- reactive(unique(conditions()))
 
 # An attempt to add a shifted ZT time column to melted dataframe.
 # It works but allow to shift the scale only in full hour increments. This part may benefit from some extra work.   
-LD_start <- reactive(as.POSIXct(strptime(input$light_onset_time, format="%H:%M:%S")))
-start <- reactive(as.POSIXct(strptime("00:00:00", format="%H:%M:%S")))
-end <- reactive(as.POSIXct(strptime("23:59:00", format="%H:%M:%S")))
+LD_start <- reactive(as.POSIXct(strptime(input$light_onset_time, format="%H:%M")))
+start <- reactive(as.POSIXct(strptime("00:00", format="%H:%M")))
+end <- reactive(as.POSIXct(strptime("23:59", format="%H:%M")))
 interval <- reactive(60) #unit seconds
 
 # Sequence of hours
@@ -365,7 +379,9 @@ melted_by_day <- reactive({
   p <- melt_(d, id.vars=c("date", "Light_cycle"))
   p$date <- as.Date(p$date)
   p$Condition <- paste(rep(conditions(), each=number_of_days()))
+  p <- p[c("Condition", "variable", "Light_cycle", "date", "value")]
   p
+  
 })
 
 # Makes a list of alive flies
@@ -393,19 +409,23 @@ all_flies_count <- reactive({
   #it takes the first light cycle condition, either LD or DD.
   p <- summary_by_fly_including_dead()
   k <- ddply(filter(p, Light_cycle==p$Light_cycle[1]), c("Condition"), summarise, N_all_flies=length(Condition))
+  k$Condition <- factor(k$Condition, levels = unique(conditions()))
+  k <- arrange(k, Condition)
   k
 })
 
 # Object summarizing locomotor activity in LD and DD
 general_summary <- reactive({
+  
   withProgress(message = 'Calculating summary by Condition', min=0, max=0.6, value = 0.5, {
     incProgress(0.8, detail = paste("In progress"))
-    
+
     d <- ddply(summary_by_fly_alive(), c("Condition", "Light_cycle"), summarise,
                Mean = mean(mean_value), SD = sd(mean_value),
                SEM = sd(mean_value)/sqrt(length(mean_value)),
                N_living_flies=length(Condition))
-    d <- cbind(d, Dead_flies=rep(unlist(lapply(1:input$Number_of_conditions, function(i){All_inputs()[[paste0("Number_of_flies_in_cond",i)]]})), each=length(unique(d$Light_cycle))) - d$N_living_flies)
+    
+    d <- cbind(d, Dead_flies=rep(all_flies_count()$N_all_flies, each=length(unique(d$Light_cycle))) - d$N_living_flies)
     d$All_flies <- d$N_living_flies + d$Dead_flies
     d
   })})

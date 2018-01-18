@@ -7,13 +7,17 @@ melted_alive_LD <- reactive(filter(melted_alive(), Light_cycle=="LD"))
 
 #Claculates mean and SEM values for every timepoint per condition in LD
 activity_per_condition<- reactive({
+
   
   DT<- data.table(melted_alive_LD())
   p<- DT[,list(mean=as.numeric(mean(value)), SEM=as.numeric(sd(value)/sqrt(length(value)))), by=c("Dec_time", "Dec_ZT_time", "Condition")]
   p$Condition <- factor(p$Condition, levels = unique(conditions()))
   p <- arrange(p, Condition)
+  p <- na.omit(p)
   p
 })
+
+
 
 # Averaging activity into X min intervals. The original approach was just "binning" the data over 30 min, hence the object names. Legacy... 
 
@@ -24,8 +28,8 @@ sem_of_activity_per_condition_30_min <- reactive(rollapply(activity_per_conditio
 #Adds a mean and SEM averaged columns into the original data frame by repeating each element X times
 activity_per_condition_1 <- reactive({
   d <- data.frame(activity_per_condition(), 
-                  mean_30_min = rep(mean_of_activity_per_condition_30_min(), each=as.numeric(input$act_profile_window)/as.numeric(input$data_recording_frequency)),
-                  sem_30_min = rep(sem_of_activity_per_condition_30_min(), each=as.numeric(input$act_profile_window)/as.numeric(input$data_recording_frequency)))
+                  binned_mean = round(rep(mean_of_activity_per_condition_30_min(), each=as.numeric(input$act_profile_window)/as.numeric(input$data_recording_frequency)), 10),
+                  binned_sem = round(rep(sem_of_activity_per_condition_30_min(), each=as.numeric(input$act_profile_window)/as.numeric(input$data_recording_frequency))), 10)
   d
 })
 
@@ -33,7 +37,7 @@ activity_per_condition_1 <- reactive({
 activity_30min_mean_2 <- reactive(activity_per_condition_1()[seq(1, nrow(activity_per_condition_1()), by = as.numeric(input$act_profile_window)/as.numeric(input$data_recording_frequency)),])
 
 #Drops unnecessary columns containing not averaged mean and SEM data
-activity_30min_mean <- reactive(select(activity_30min_mean_2(), Dec_time, Dec_ZT_time, Condition, mean_30_min, sem_30_min))
+activity_30min_mean <- reactive(select(activity_30min_mean_2(), Dec_time, Dec_ZT_time, Condition, binned_mean, binned_sem))
 
 
 # Daytime Nighttime activity in LD. Assigns Day and Night
@@ -94,19 +98,6 @@ Night_Day_ratio<- reactive({
   
 })
 
-# Activity profiles download links
-
-# Activity profiles data file
-output$downloadActivity_profiles <- downloadHandler(
-  filename = function() {
-    paste("Activity_profiles_data_", Sys.Date(),  ".csv", sep="")
-  },
-  content = function(file) {
-    write.csv(activity_30min_mean(), file)
-  }
-) 
-
-
 
 
 
@@ -120,7 +111,7 @@ output$activity_profile_by_day <- renderPlot({
     return()
   
   isolate({
-    
+   
     binning_value <- input$act_profile_window / input$data_recording_frequency #Generated a value for binning 
     df_mm <- mean_and_median()
     
@@ -155,11 +146,12 @@ output$activity_profile_by_day <- renderPlot({
       geom_point()+ 
       theme_bw()+
       scale_x_continuous(breaks = b1, 
-                         labels=c(rep(c("0", "6", "12", "18"), times=length(unique(df_mm$date))), "0h"))+ # X axis labels
-      geom_vline(xintercept = seq(0,length(unique(df_mm$Order_column)), 1440/input$data_recording_frequency))+
-      # v lines separating days 
-      annotate("text", x=b2, 
-               y=input$ac_profile_y_lim, label= unique(df_mm$date), size = 7)+                           # displays day annotations  
+                         labels=c(rep(c("0", "6", "12", "18"), times=length(unique(df_mm$date))), "0"))+ # X axis labels
+      geom_vline(xintercept = seq(0,length(unique(df_mm$Order_column)), 1440/input$data_recording_frequency))+ (
+        if (input$date_disp == "Yes")(
+          annotate("text", x= b2, y=input$ac_profile_y_lim, label= unique(df_mm$date), size = 7)
+        )) +
+      # displays day annotations  
       labs(title= "", x= "Time of the day [H]", y = "Average counts per min")+ 
       coord_cartesian(ylim=c(0,as.numeric(ac_profile_max_y())))+
       scale_colour_manual(values=Plot_colors())+
@@ -239,8 +231,10 @@ output$activity_profile_by_day_split <- renderPlot({
         geom_line()+
         geom_point()+
         scale_x_continuous(breaks = b1, 
-                           labels=c(rep(c("0", "6", "12", "18"), times=length(unique(df_mm$date))), "0h"))+ # X axis labels
-        annotate("text", x= b2, y=input$ac_profile_y_lim, label= unique(df_mm$date), size = 7)+                                                                      
+                           labels=c(rep(c("0", "6", "12", "18"), times=length(unique(df_mm$date))), "0"))+ (
+          if (input$date_disp == "Yes")(
+        annotate("text", x= b2, y=input$ac_profile_y_lim, label= unique(df_mm$date), size = 7)
+                             )) +
         labs(title= "", x= "Time of the day [H]", y = "Average counts per min")+ 
         coord_cartesian(ylim=c(0,as.numeric(ac_profile_max_y())))+
         scale_colour_manual(values=Plot_colors())+
@@ -281,6 +275,17 @@ output$act_profiles_by_day_split <- renderUI({
 })    
 
 
+# Work in progress
+
+output$download_daily_act_profiles <- downloadHandler(
+  filename = function() {
+    paste("Daily_activity_profiles", ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(mean_and_median(), file)  # this is not a corrtect object. I will have to throw some stuff above into a reactive....
+  }
+)
+
 
 
 
@@ -307,24 +312,18 @@ output$activity_profile_30_min <- renderPlot({
       }
       
     
-      # Plots activity in X min intervals
-      brake_distances<- c(1,
-                          length(unique(activity_30min_mean()[, scale]))*0.25,
-                          length(unique(activity_30min_mean()[, scale]))*0.5,
-                          length(unique(activity_30min_mean()[, scale]))*0.75,
-                          length(unique(activity_30min_mean()[, scale]))*1)
+      brakes_vector <- c(0, 360, 720, 1080, 1440)
       
-      brakes_vector<- sort(unique(activity_30min_mean()[, scale]))[brake_distances]
       d <- activity_30min_mean()
       
       
-      
-      plots_activity_30_min <-  ggplot(d, aes(get(scale), y=mean_30_min, ymax=3, ymin=0, colour=Condition)) +
+      plots_activity_30_min <-  ggplot(d, aes(get(scale), y=binned_mean, ymax=3, ymin=0, colour=Condition)) +
         geom_point()+
         geom_line()+
+        geom_vline(xintercept = c(0, 1440))+
         labs(title= "", x= "Time of the day [H]", y = "Average counts per min")+
         coord_cartesian(ylim=c(0,as.numeric(ac_profile_max_y())))+
-        scale_x_continuous(breaks = brakes_vector, labels=c("0", "6", "12", "18", "24"))+
+        scale_x_continuous(breaks = brakes_vector, labels=c("0", "6", "12", "18", "0"))+
         theme_bw()+
         scale_colour_manual(values=Plot_colors())+
         theme(legend.text=element_text(size=18))+
@@ -334,7 +333,7 @@ output$activity_profile_30_min <- renderPlot({
         theme(axis.title=element_text(size=18))+
         guides(colour = guide_legend(override.aes = list(size=1)))+ (   #edits the point size in a legend
           if (input$display_error_bars == "Yes")(
-            geom_errorbar(aes(ymax=mean_30_min+sem_30_min,ymin=mean_30_min-sem_30_min), width=0.3)
+            geom_errorbar(aes(ymax=binned_mean + binned_sem,ymin=binned_mean - binned_sem), width=0.3)
           ))
         
       
@@ -380,23 +379,18 @@ output$activity_profile_30_min_split <- renderPlot({
       }
       
       
-      # Plots activity in X min intervals
-      brake_distances<- c(1,
-                          length(unique(activity_30min_mean()[, scale]))*0.25,
-                          length(unique(activity_30min_mean()[, scale]))*0.5,
-                          length(unique(activity_30min_mean()[, scale]))*0.75,
-                          length(unique(activity_30min_mean()[, scale]))*1)
+      brakes_vector <- c(0, 360, 720, 1080, 1440)
       
-      brakes_vector<- sort(unique(activity_30min_mean()[, scale]))[brake_distances]
       d <- activity_30min_mean()
       
       plots_activity_30_min_x <- lapply(unique_conditions(), function(x) ggplot(filter(d, Condition==x), 
-                                                            aes(get(scale), y=mean_30_min, ymax=3, ymin=0, colour=Condition)) +
+                                                            aes(get(scale), y=binned_mean, ymax=3, ymin=0, colour=Condition)) +
                                           geom_point()+
                                           geom_line()+
+                                          geom_vline(xintercept = c(0, 1440))+
                                           labs(title= "", x= "Time of the day [H]", y = "Average counts per min")+
                                           coord_cartesian(ylim=c(0,as.numeric(ac_profile_max_y())))+
-                                          scale_x_continuous(breaks = brakes_vector, labels=c("0", "6", "12", "18", "24"))+
+                                          scale_x_continuous(breaks = brakes_vector, labels=c("0", "6", "12", "18", "0"))+
                                           theme_bw()+
                                           scale_colour_manual(values=Plot_colors())+
                                           theme(legend.text=element_text(size=18))+
@@ -406,7 +400,7 @@ output$activity_profile_30_min_split <- renderPlot({
                                           theme(axis.title=element_text(size=18))+
                                           guides(colour = guide_legend(override.aes = list(size=1)))+ (   #edits the point size in a legend
                                             if (input$display_error_bars == "Yes")(
-                                              geom_errorbar(aes(ymax=mean_30_min+sem_30_min,ymin=mean_30_min-sem_30_min), width=0.3)
+                                              geom_errorbar(aes(ymax=binned_mean + binned_sem, ymin=binned_mean - binned_sem), width=0.3)
                                             ))
                                            )
                                           
@@ -433,6 +427,20 @@ output$act_profiles_average_split <- renderUI({
     )
   )
 })
+
+
+# Activity profiles download links
+
+# Activity profiles data file
+output$download_average_act_profiles <- downloadHandler(
+  filename = function() {
+    paste("Average_activity_profiles_in_LD", ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(activity_30min_mean(), file)
+  }
+) 
+
 
 
 output$Daytime_activity <- renderPlot({
