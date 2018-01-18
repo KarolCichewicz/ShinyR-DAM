@@ -16,3 +16,10 @@ We developed a web application ShinyR-DAM for analyzing Drosophila locomotor act
 
 ### License
 ShinyR-DAM source code is provided under the GPLv3 free software license.
+
+### Current ShinyR-DAM version: 3.0
+
+R language and packages versions as commited on 1/18/2018:
+* R: 3.3.1
+* RStudio: 1.0.143
+* shiny: 1.0.3
