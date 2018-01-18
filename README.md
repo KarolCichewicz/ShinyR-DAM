@@ -19,7 +19,7 @@ ShinyR-DAM source code is provided under the GPLv3 free software license.
 
 ### Current ShinyR-DAM version: 3.0
 
-### R session info
+### R session info:
 R version 3.3.1 (2016-06-21)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows >= 8 x64 (build 9200)
