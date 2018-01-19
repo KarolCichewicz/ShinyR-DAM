@@ -42,13 +42,13 @@ other attached packages:
 
 loaded via a namespace (and not attached):
  [1] Rcpp_0.12.14     pillar_1.1.0     compiler_3.4.3   bindr_0.1        bitops_1.0-6    
- [6] tools_3.4.3      digest_0.6.14    jsonlite_1.5     tibble_1.4.1     gtable_0.2.0    
-[11] lattice_0.20-35  pkgconfig_2.0.1  rlang_0.1.6      stringr_1.2.0    knitr_1.18      
-[16] htmlwidgets_0.9  glue_1.2.0       R6_2.2.2         RJSONIO_1.3-0    reshape2_1.4.3  
-[21] magrittr_1.5     htmltools_0.3.6  rsconnect_0.8.5  assertthat_0.2.0 mime_0.5        
-[26] xtable_1.8-2     colorspace_1.3-2 httpuv_1.3.5     labeling_0.3     miniUI_0.1.1    
-[31] stringi_1.1.6    RCurl_1.95-4.10  lazyeval_0.2.1   munsell_0.4.3    markdown_0.8   
-
+ [6] tools_3.4.3      digest_0.6.14    evaluate_0.10.1  jsonlite_1.5     tibble_1.4.1    
+[11] gtable_0.2.0     lattice_0.20-35  pkgconfig_2.0.1  rlang_0.1.6      yaml_2.1.16     
+[16] stringr_1.2.0    knitr_1.18       htmlwidgets_0.9  rprojroot_1.3-2  glue_1.2.0      
+[21] R6_2.2.2         rmarkdown_1.8    RJSONIO_1.3-0    reshape2_1.4.3   magrittr_1.5    
+[26] backports_1.1.2  htmltools_0.3.6  rsconnect_0.8.5  assertthat_0.2.0 mime_0.5        
+[31] xtable_1.8-2     colorspace_1.3-2 httpuv_1.3.5     labeling_0.3     miniUI_0.1.1    
+[36] stringi_1.1.6    RCurl_1.95-4.10  lazyeval_0.2.1   munsell_0.4.3    markdown_0.8  
 
 
 
