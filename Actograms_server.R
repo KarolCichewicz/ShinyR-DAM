@@ -241,7 +241,7 @@ ind_act <- reactive({function(x){
   
   
   
-  y <- filter(melted(), variable==quote(x)) # Filteres a condition 
+  y <- filter(melted(), variable== x) # Filteres a condition 
   
   binning_value <- input$actogram_bin / input$data_recording_frequency #Generated a value for binning 
   
