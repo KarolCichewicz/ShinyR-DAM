@@ -145,7 +145,8 @@ column(8,
            tags$p(
              'Within the analyzed period of dates ShinyR-DAM scans monitor files status column for errors, so no pre-filtering 
              or scanning with DAMFileScan is necessary. The maximum size of files that can be uploaded for the analysis is limited 
-             to 300 MB. There is no restriction on file names.'), 
+             to 300 MB. You can rename your monitor files, but adding extra numbers into file names may cause 
+             the Condition-Monitor layout table to crash.'), 
            style = "font-size: 19px"),
          
          h3(strong('Experiment layout')),

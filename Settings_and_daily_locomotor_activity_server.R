@@ -436,10 +436,10 @@ general_summary <- reactive({
     d <- ddply(summary_by_fly_alive(), c("Condition", "Light_cycle"), summarise,
                Mean = mean(mean_value), SD = sd(mean_value),
                SEM = sd(mean_value)/sqrt(length(mean_value)),
-               N_living_flies=length(Condition))
+               N_of_alive_flies=length(Condition))
     
-    d <- cbind(d, Dead_flies=rep(all_flies_count()$N_all_flies, each=length(unique(d$Light_cycle))) - d$N_living_flies)
-    d$All_flies <- d$N_living_flies + d$Dead_flies
+    d <- cbind(d, N_of_dead_flies=rep(all_flies_count()$N_all_flies, each=length(unique(d$Light_cycle))) - d$N_of_alive_flies)
+    d$N_of_all_flies <- d$N_of_alive_flies + d$N_of_dead_flies
     d
   })})
 
@@ -519,6 +519,7 @@ output$Monitor_layout <- renderTable({
     return(NULL)
   isolate({
     d <- melted_by_day()
+    
     #Monitor-genotype layout
     #It ain't pretty, but it shows the layout the program interprets the data.
     Monitor_layout<- filter(melted_by_day(), date==(d$date)[1])

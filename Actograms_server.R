@@ -21,7 +21,7 @@ ac_profile_max_y <- eventReactive(input$refresh_1,{
 # Calculates a dataset for plotting mean and median actograms  
 mean_and_median <- reactive({
   DT<- data.table(melted_alive())
-  DT[,list(median=as.numeric(median(value)), mean=as.numeric(mean(value)), sem=as.numeric(sd(value)/sqrt(length(value)))), 
+  DT[,list(median=as.numeric(median(value)/input$data_recording_frequency), mean=as.numeric(mean(value/input$data_recording_frequency)), sem=as.numeric(sd(value/input$data_recording_frequency)/sqrt(length(value)))), 
      by=c("Dec_time", "Condition", "date", "Dec_ZT_time")]
 })
 

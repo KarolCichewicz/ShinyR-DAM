@@ -10,7 +10,7 @@ activity_per_condition<- reactive({
 
   
   DT<- data.table(melted_alive_LD())
-  p<- DT[,list(mean=as.numeric(mean(value)), SEM=as.numeric(sd(value)/sqrt(length(value)))), by=c("Dec_time", "Dec_ZT_time", "Condition")]
+  p<- DT[,list(mean=as.numeric(mean(value/input$data_recording_frequency)), SEM=as.numeric(sd(value/input$data_recording_frequency)/sqrt(length(value)))), by=c("Dec_time", "Dec_ZT_time", "Condition")]
   p$Condition <- factor(p$Condition, levels = unique(conditions()))
   p <- arrange(p, Condition)
   p <- na.omit(p)
